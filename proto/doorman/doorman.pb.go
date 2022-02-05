@@ -78,6 +78,7 @@ var Algorithm_Kind_name = map[int32]string{
 	2: "PROPORTIONAL_SHARE",
 	3: "FAIR_SHARE",
 }
+
 var Algorithm_Kind_value = map[string]int32{
 	"NO_ALGORITHM":       0,
 	"STATIC":             1,

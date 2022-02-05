@@ -18,6 +18,7 @@ import (
 
 // Source is a source for configuration. Calling it will block until a
 // new version of the config is available.
+// zx: 这是一个要返回的函数，所以定义为一个对象
 type Source func(context.Context) (data []byte, err error)
 
 type pair struct {

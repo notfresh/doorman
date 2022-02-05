@@ -126,6 +126,7 @@ func DialOpts(dialOpts ...rpc.DialOption) Option {
 }
 
 // Resource represents a resource managed by a doorman server.
+// zx: 在哪里会实现resource这个接口呢？
 type Resource interface {
 	// Capacity returns a channel on which the available capacity
 	// will be sent.
@@ -202,11 +203,11 @@ func NewWithID(addr string, id string, opts ...Option) (*Client, error) {
 
 // GetMaster returns the address of the Doorman master we are connected to.
 func (client *Client) GetMaster() string {
-  if client.conn == nil {
-    return ""
-  }
+	if client.conn == nil {
+		return ""
+	}
 
-  return client.conn.String()
+	return client.conn.String()
 }
 
 // run is the client's main loop. It takes care of requesting new
@@ -519,7 +520,6 @@ func (res *resourceImpl) Capacity() chan float64 {
 func (res *resourceImpl) Wants() float64 {
 	res.mu.Lock()
 	defer res.mu.Unlock()
-
 	return res.wants
 }
 

@@ -14,7 +14,7 @@ func TestPopulate(t *testing.T) {
 		bar = fs.String("bar", "", "")
 		baz = fs.String("baz", "", "")
 	)
-	fs.Parse([]string{"-foo=foo", "-baz=baz"})
+	fs.Parse([]string{"-foo=foo", "-baz=baz"}) //
 
 	os.Clearenv()
 	os.Setenv("DOORMAN_BAR", "bar")

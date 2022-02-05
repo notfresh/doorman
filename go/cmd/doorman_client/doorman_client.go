@@ -22,6 +22,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	log "github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -77,4 +78,9 @@ func main() {
 	}
 
 	fmt.Println(<-resource.Capacity())
+	for {
+		println("tick...")
+		time.Sleep(60 * time.Second)
+	}
+
 }

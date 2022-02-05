@@ -81,3 +81,5 @@ tramp
 
 # cask packages
 .cask/
+
+doc/simplecluster/doorman_log_dir/

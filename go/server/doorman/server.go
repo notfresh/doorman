@@ -155,7 +155,9 @@ type Server struct {
 		has        *prometheus.Desc
 		wants      *prometheus.Desc
 		subclients *prometheus.Desc
+		test       *prometheus.Desc
 	}
+	test_value float64
 }
 
 type updater func(server *Server, retryNumber int) (time.Duration, int)
@@ -498,6 +500,7 @@ func (server *Server) Describe(ch chan<- *prometheus.Desc) {
 	ch <- server.descs.has
 	ch <- server.descs.wants
 	ch <- server.descs.subclients
+	ch <- server.descs.test
 }
 
 // Collect implements prometheus.Collector.
@@ -509,6 +512,8 @@ func (server *Server) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(server.descs.wants, prometheus.GaugeValue, res.SumWants, id)
 		ch <- prometheus.MustNewConstMetric(server.descs.subclients, prometheus.GaugeValue, float64(res.Count), id)
 	}
+	server.test_value += 10
+	ch <- prometheus.MustNewConstMetric(server.descs.test, prometheus.GaugeValue, server.test_value)
 }
 
 // NewIntermediate creates a server connected to the lower level server.
@@ -542,6 +547,7 @@ func NewIntermediate(ctx context.Context, id string, addr string, leader electio
 		conn:           conn,
 		updater:        updater,
 		quit:           make(chan bool),
+		test_value:     0,
 	}
 
 	const (
@@ -564,6 +570,12 @@ func NewIntermediate(ctx context.Context, id string, addr string, leader electio
 		prometheus.BuildFQName(namespace, subsystem, "subclients"),
 		"Number of clients requesting this resource.",
 		labelNames, nil,
+	)
+
+	server.descs.test = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, subsystem, "test"),
+		"test report value.",
+		nil, nil,
 	)
 
 	// For an intermediate server load the default config for "*"

@@ -136,14 +136,26 @@ func getServerID(port int) string {
 }
 
 func main() {
-	flag.Parse()
+	log_dir_path := "./doorman_log_dir"
+	if _, err := os.Stat(log_dir_path); os.IsNotExist(err) {
+		log.Infoln("创建日志目录" + log_dir_path)
+		if err := os.Mkdir(log_dir_path, os.ModePerm); err != nil {
+			log.Exit(err)
+		}
+	}
+	flag.Lookup("log_dir").Value.Set(log_dir_path)
 	if err := flagenv.Populate(flag.CommandLine, "DOORMAN"); err != nil {
 		log.Exit(err)
 	}
+	flag.Parse()
 
 	if *config == "" {
 		log.Exit("--config cannot be empty")
 	}
+	// zx: doorman: $GOPATH/bin/doorman -config=./config.yml -port=$PORT
+	// -debug_port=$(expr $PORT + 50) -etcd_endpoints=http://localhost:2379
+	// -master_election_lock=/doorman.master -hostname=localhost
+	// -log_dir="./doorman_log_dir"
 	var (
 		etcdEndpointsSlice = strings.Split(*etcdEndpoints, ",")
 		masterElection     election.Election
@@ -159,6 +171,7 @@ func main() {
 		masterElection = election.Trivial()
 	}
 
+	// zx:构建一个服务器实例
 	dm, err := doorman.New(context.Background(), getServerID(*port), *parent, masterElection,
 		connection.MinimumRefreshInterval(*minimumRefreshInterval),
 		connection.DialOpts(
@@ -184,6 +197,7 @@ func main() {
 		log.Exit("-config cannot be empty")
 	}
 
+	// zx: 配置可以是一个file，也可以是一个etcd里面存的值
 	var cfg configuration.Source
 	kind, path := configuration.ParseSource(*config)
 	switch {
@@ -209,11 +223,12 @@ func main() {
 				continue
 			}
 			cfg := new(pb.ResourceRepository)
+			// zx: 这里看不懂
 			if err := yaml.Unmarshal(data, cfg); err != nil {
 				log.Errorf("cannot unmarshal config data: %q", data)
 				continue
 			}
-
+			// zx:表示doorman, 现在开始加载配置
 			if err := dm.LoadConfig(context.Background(), cfg, map[string]*time.Time{}); err != nil {
 				log.Errorf("cannot load config: %v", err)
 			}
@@ -227,7 +242,7 @@ func main() {
 	AddServer(dm)
 
 	http.Handle("/metrics", prometheus.Handler())
-
+	log.Info(fmt.Sprintf("Server listen on port %v", *debugPort))
 	go http.ListenAndServe(fmt.Sprintf(":%v", *debugPort), nil)
 
 	// Waits for the server to get its initial configuration. This guarantees that

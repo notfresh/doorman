@@ -46,5 +46,7 @@ func (g *glogger) Println(args ...interface{}) {
 }
 
 func init() {
+
 	grpclog.SetLogger(&glogger{})
+
 }

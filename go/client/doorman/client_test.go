@@ -91,6 +91,7 @@ func setUp() (*fixture, error) {
 	return &fix, nil
 }
 
+// zx: 重复构造相同的资源ID
 func TestOnlyOneResource(t *testing.T) {
 	fix, err := setUp()
 	if err != nil {
@@ -137,6 +138,7 @@ func receiveWithTimeout(t *testing.T, channel chan float64, length time.Duration
 
 }
 
+// zx: 这个方法不知道在测什么？
 func TestMastershipReconnect(t *testing.T) {
 	fix, err := setUp()
 	if err != nil {
@@ -158,6 +160,7 @@ func TestMastershipReconnect(t *testing.T) {
 	go rpcServer.Serve(lis)
 	defer rpcServer.Stop()
 
+	// zx: 先连接一个非master，再次试试能否跳转到master
 	client, err := NewWithID(lis.Addr().String(), "test_client",
 		DialOpts(rpc.WithInsecure(), rpc.WithTimeout(rpcTimeout)))
 	if err != nil {
@@ -204,6 +207,7 @@ func waitUntilChannelClosed(res Resource) {
 	}
 }
 
+// zx: 测试多次释放
 func TestRelease(t *testing.T) {
 	fix, err := setUp()
 	if err != nil {

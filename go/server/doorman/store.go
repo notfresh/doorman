@@ -104,7 +104,7 @@ type LeaseStore interface {
 
 type leaseStoreImpl struct {
 	id       string
-	leases   map[string]Lease
+	leases   map[string]Lease // zx:key表示什么?key代表client_id
 	sumWants float64
 	sumHas   float64
 	count    int64

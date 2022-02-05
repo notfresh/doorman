@@ -137,6 +137,7 @@ func (client *Multiclient) getClient(id string) (*doorman.Client, error) {
 	return c, nil
 }
 
+// zx: 这个方法是拉取配额的意思吗？
 func (client *Multiclient) pollResource(k key, capacities chan float64) {
 	for c := range capacities {
 		client.mu.Lock()
@@ -144,12 +145,14 @@ func (client *Multiclient) pollResource(k key, capacities chan float64) {
 		log.Infof("Received new capacity for %v: %v", k, c)
 		client.mu.Unlock()
 	}
+	// zx:为什么这里又要把这个k删掉，不太懂这里的意思
 	client.mu.Lock()
 	delete(client.capacities, k)
 	delete(client.resources, k)
 	client.mu.Unlock()
 }
 
+// zx:client会持有很多resource，如果resource不存在，就会去后台拉取
 func (client *Multiclient) getResource(clientID, resourceID string) (doorman.Resource, error) {
 	k := key{clientID, resourceID}
 	client.mu.RLock()
@@ -173,6 +176,7 @@ func (client *Multiclient) getResource(clientID, resourceID string) (doorman.Res
 	return r, nil
 }
 
+// zx: get指令的操作
 func (client *Multiclient) Get(id string, resource string, wants float64) error {
 	r, err := client.getResource(id, resource)
 	if err != nil {
@@ -227,11 +231,11 @@ func (client *Multiclient) Eval(command []string) error {
 		}
 		clientID, resourceID := tail[0], tail[1]
 		return client.Release(clientID, resourceID)
-  case "master":
-    for k, v := range client.clients {
-      fmt.Printf("%s: %s\n", k, v.GetMaster())
-    }
-    return nil
+	case "master":
+		for k, v := range client.clients {
+			fmt.Printf("%s: %s\n", k, v.GetMaster())
+		}
+		return nil
 	case "help":
 		fmt.Fprintln(os.Stderr, help)
 		return nil

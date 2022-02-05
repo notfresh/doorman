@@ -197,6 +197,7 @@ message ResourceRepository {
   repeated ResourceTemplate resources = 1;
 }
 
+// zx: 放心，这本身就是空的
 // The request to obtain the master's address.
 message DiscoveryRequest {
 }
