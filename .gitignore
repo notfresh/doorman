@@ -83,3 +83,5 @@ tramp
 .cask/
 
 doc/simplecluster/doorman_log_dir/
+
+.idea/

@@ -20,8 +20,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"math/rand"
 	"time"
 
 	log "github.com/golang/glog"
@@ -35,6 +37,7 @@ var (
 	server   = flag.String("server", "", "Address of the doorman server")
 	resource = flag.String("resource", "", "Name of the resource to request capacity for")
 	wants    = flag.Float64("wants", 0, "Amount of capacity to request")
+
 	clientID = flag.String("client_id", "", "Client id to use")
 	caFile   = flag.String("ca_file", "", "The file containning the CA root cert file to connect over TLS (otherwise plain TCP will be used)")
 )
@@ -71,6 +74,7 @@ func main() {
 	}
 
 	defer client.Close()
+	resource_name := *resource
 	resource, err := client.Resource(*resource, *wants)
 
 	if err != nil {
@@ -78,9 +82,36 @@ func main() {
 	}
 
 	fmt.Println(<-resource.Capacity())
+	wantValue := *wants
 	for {
+		randValue, _ := rand_float(0, 0.2)
+		wantValue += wantValue * float64(randValue) * float64(rand_fector()) //
+		fmt.Printf("new want value, %v %v\n", resource_name, wantValue)
+		resource.Ask(wantValue)
 		println("tick...")
-		time.Sleep(60 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 
+}
+
+// 0到1之间的范围
+func rand_float(begin, end float32) (float64, error) {
+	if begin < 0 && end < 0 {
+		return 0, errors.New("范围有误")
+	}
+	rand.Seed(time.Now().UnixNano())
+	begin_new, end_new := int(begin*100), int(end*100)
+	num := rand.Intn(end_new-begin_new) + begin_new
+	return float64(num) / 100, nil
+}
+
+// 返回负一或者正一
+func rand_fector() int {
+	rand.Seed(time.Now().UnixNano())
+	x := rand.Intn(2) - 1
+	if x == 0 {
+		return 1
+	} else {
+		return -1
+	}
 }

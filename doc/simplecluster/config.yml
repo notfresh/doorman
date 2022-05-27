@@ -23,3 +23,5 @@ resources:
       kind: FAIR_SHARE
       lease_length: 60
       refresh_interval: 15
+
+
