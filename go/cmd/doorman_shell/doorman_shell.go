@@ -31,8 +31,8 @@ import (
 	"github.com/chzyer/readline"
 	log "github.com/golang/glog"
 	"github.com/google/shlex"
+	"github.com/notfresh/doorman/go/client/doorman"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/youtube/doorman/go/client/doorman"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

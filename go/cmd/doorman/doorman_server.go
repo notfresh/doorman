@@ -31,14 +31,14 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/ghodss/yaml"
-	"github.com/youtube/doorman/go/configuration"
-	"github.com/youtube/doorman/go/connection"
-	"github.com/youtube/doorman/go/flagenv"
-	"github.com/youtube/doorman/go/server/doorman"
-	"github.com/youtube/doorman/go/server/election"
-	"github.com/youtube/doorman/go/status"
+	"github.com/notfresh/doorman/go/configuration"
+	"github.com/notfresh/doorman/go/connection"
+	"github.com/notfresh/doorman/go/flagenv"
+	"github.com/notfresh/doorman/go/server/doorman"
+	"github.com/notfresh/doorman/go/server/election"
+	"github.com/notfresh/doorman/go/status"
 
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 
 	_ "expvar"
 	_ "net/http/pprof"

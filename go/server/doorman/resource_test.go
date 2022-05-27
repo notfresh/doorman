@@ -20,7 +20,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 )
 
 const (

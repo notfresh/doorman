@@ -21,10 +21,10 @@ import (
 	"time"
 
 	log "github.com/golang/glog"
-	"github.com/youtube/doorman/go/timeutil"
+	"github.com/notfresh/doorman/go/timeutil"
 	rpc "google.golang.org/grpc"
 
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 )
 
 const (

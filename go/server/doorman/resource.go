@@ -21,7 +21,7 @@ import (
 
 	log "github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 )
 
 // NOTE(ryszard): Any exported Resource methods are responsible for

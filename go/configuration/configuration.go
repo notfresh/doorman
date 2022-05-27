@@ -12,7 +12,7 @@ import (
 
 	"github.com/coreos/etcd/client"
 	log "github.com/golang/glog"
-	"github.com/youtube/doorman/go/timeutil"
+	"github.com/notfresh/doorman/go/timeutil"
 	"golang.org/x/net/context"
 )
 

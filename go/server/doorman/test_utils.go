@@ -21,10 +21,10 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"github.com/youtube/doorman/go/connection"
-	"github.com/youtube/doorman/go/server/election"
+	"github.com/notfresh/doorman/go/connection"
+	"github.com/notfresh/doorman/go/server/election"
 
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 )
 
 // MakeTestServer creates a test root server. It doesn't start any
