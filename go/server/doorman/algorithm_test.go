@@ -31,6 +31,7 @@ type testCase struct {
 	subclients int64
 }
 
+// zx respectMax 表示统计最大值的开关
 func testAlgorithm(t *testing.T, cases []testCase, capacity float64, algoFunc func(*pb.Algorithm) Algorithm, respectMax, preloadStore bool) LeaseStore {
 	store, algo := NewLeaseStore("test"), algoFunc(new(pb.Algorithm))
 

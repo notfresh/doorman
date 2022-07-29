@@ -8,15 +8,15 @@ import (
 
 func TestPopulate(t *testing.T) {
 
-	var (
+	var ( // zx create a flagSet and add three key value pairs
 		fs  = flag.NewFlagSet("testing", flag.ExitOnError)
 		foo = fs.String("foo", "", "")
 		bar = fs.String("bar", "", "")
 		baz = fs.String("baz", "", "")
 	)
-	fs.Parse([]string{"-foo=foo", "-baz=baz"}) //
+	fs.Parse([]string{"-foo=foo", "-baz=baz"}) // zx what's this for?
 
-	os.Clearenv()
+	os.Clearenv() // zx OS create some value to check
 	os.Setenv("DOORMAN_BAR", "bar")
 	os.Setenv("DOORMAN_BAZ", "baz from env")
 

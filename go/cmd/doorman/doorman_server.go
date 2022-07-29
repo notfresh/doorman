@@ -126,7 +126,7 @@ func getServerID(port int) string {
 	if *hostname != "" {
 		return fmt.Sprintf("%s:%d", *hostname, port)
 	}
-	hn, err := os.Hostname()
+	hn, err := os.Hostname() // zx if there is no host name , take the os name
 
 	if err != nil {
 		hn = "unknown.localhost"
@@ -143,7 +143,8 @@ func main() {
 			log.Exit(err)
 		}
 	}
-	flag.Lookup("log_dir").Value.Set(log_dir_path)
+	flag.Lookup("log_dir").Value.Set(log_dir_path) // zx ? @hard how to set log dir
+	// zx log_dir is the directory that will keep the log,but parsed by flags
 	if err := flagenv.Populate(flag.CommandLine, "DOORMAN"); err != nil {
 		log.Exit(err)
 	}
@@ -152,23 +153,24 @@ func main() {
 	if *config == "" {
 		log.Exit("--config cannot be empty")
 	}
+	// zx go get can create the binary
 	// zx: doorman: $GOPATH/bin/doorman -config=./config.yml -port=$PORT
 	// -debug_port=$(expr $PORT + 50) -etcd_endpoints=http://localhost:2379
 	// -master_election_lock=/doorman.master -hostname=localhost
 	// -log_dir="./doorman_log_dir"
 	var (
-		etcdEndpointsSlice = strings.Split(*etcdEndpoints, ",")
+		etcdEndpointsSlice = strings.Split(*etcdEndpoints, ",") // zx strings is a good tool.
 		masterElection     election.Election
 	)
 	if *masterElectionLock != "" {
 
-		if len(etcdEndpointsSlice) == 1 && etcdEndpointsSlice[0] == "" {
+		if len(etcdEndpointsSlice) == 1 && etcdEndpointsSlice[0] == "" { // zx log.Exit == return, but log
 			log.Exit("-etcd_endpoints cannot be empty if -master_election_lock is provided")
 		}
 
 		masterElection = election.Etcd(etcdEndpointsSlice, *masterElectionLock, *masterDelay)
 	} else {
-		masterElection = election.Trivial()
+		masterElection = election.Trivial() // zx this is ?
 	}
 
 	// zx:构建一个服务器实例
@@ -189,9 +191,9 @@ func main() {
 		}
 		opts = []rpc.ServerOption{rpc.Creds(creds)}
 	}
-	server := rpc.NewServer(opts...)
+	server := rpc.NewServer(opts...) // zx what's this? the server is a business unrelated server
 
-	pb.RegisterCapacityServer(server, dm)
+	pb.RegisterCapacityServer(server, dm) // zx the register link the business and the bottom server
 
 	if *config == "" {
 		log.Exit("-config cannot be empty")
@@ -199,7 +201,7 @@ func main() {
 
 	// zx: 配置可以是一个file，也可以是一个etcd里面存的值
 	var cfg configuration.Source
-	kind, path := configuration.ParseSource(*config)
+	kind, path := configuration.ParseSource(*config) // zx take the config
 	switch {
 	case kind == "file":
 		cfg = configuration.LocalFile(path)
@@ -216,14 +218,14 @@ func main() {
 	// the server for the first time, the server will keep running,
 	// but will not serve traffic.
 	go func() {
-		for {
+		for { // zx loop, but why?
 			data, err := cfg(context.Background())
 			if err != nil {
 				log.Errorf("cannot load config data: %v", err)
 				continue
 			}
 			cfg := new(pb.ResourceRepository)
-			// zx: 这里看不懂
+			// zx: 这里看不懂, decode, from json string to struct, cfg is a struct instance
 			if err := yaml.Unmarshal(data, cfg); err != nil {
 				log.Errorf("cannot unmarshal config data: %q", data)
 				continue
@@ -258,6 +260,6 @@ func main() {
 		log.Exit(err)
 	}
 
-	server.Serve(lis)
+	server.Serve(lis) // zx server is an rpc.server instance
 
 }

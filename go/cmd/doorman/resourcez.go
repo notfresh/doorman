@@ -47,7 +47,7 @@ func init() {
 	tmpl = template.Must(template.New("resourcez").Parse(resourcezHTML))
 
 	// Makes the slice that holds the servers for which we need to provide information.
-	servers = make([]*doorman.Server, 0, 5)
+	servers = make([]*doorman.Server, 0, 5) // zx what does this mean?
 }
 
 // AddServer adds a Doorman server to the list of servers that we provide information for.

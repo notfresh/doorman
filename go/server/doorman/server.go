@@ -28,15 +28,15 @@ import (
 
 	log "github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/notfresh/doorman/go/connection"
+	"github.com/notfresh/doorman/go/server/election"
+	"github.com/notfresh/doorman/go/timeutil"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/youtube/doorman/go/connection"
-	"github.com/youtube/doorman/go/server/election"
-	"github.com/youtube/doorman/go/timeutil"
 	"golang.org/x/net/context"
 	rpc "google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 )
 
 var (
@@ -123,20 +123,19 @@ func init() {
 
 // Server represents the state of a doorman server.
 type Server struct {
-	Election election.Election
+	Election election.Election // an interface
 	ID       string
 
 	// isConfigured is closed once an initial configuration is loaded.
-	isConfigured chan bool
+	isConfigured chan bool // zx use to do some shit, too many channel
 
 	// mu guards all the properties of server.
 	mu             sync.RWMutex
-	resources      map[string]*Resource
+	resources      map[string]*Resource // zx the core
 	isMaster       bool
 	becameMasterAt time.Time
 	currentMaster  string
 	config         *pb.ResourceRepository
-
 	// updater updates the resources' configuration for intermediate server.
 	// The root server should ignore it, since it loads the resource
 	// configuration from elsewhere.
@@ -160,11 +159,12 @@ type Server struct {
 	test_value float64
 }
 
+// zx return what and int?
 type updater func(server *Server, retryNumber int) (time.Duration, int)
 
 // WaitUntilConfigured blocks until the server is configured. If the server
 // is configured to begin with it immediately returns.
-func (server *Server) WaitUntilConfigured() {
+func (server *Server) WaitUntilConfigured() { // zx the channel is sent to some values.
 	<-server.isConfigured
 }
 
@@ -191,14 +191,14 @@ func (server *Server) LoadConfig(ctx context.Context, config *pb.ResourceReposit
 	if err := validateResourceRepository(config); err != nil {
 		return err
 	}
-
+	// zx ? take part in election? How?
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
 	firstTime := server.config == nil
 
 	// Stores the new configuration in the server object.
-	server.config = config
+	server.config = config // zx set the config
 
 	// If this is the first load of a config there are no resources
 	// in the server map, so no need to process those, but we do need
@@ -206,14 +206,14 @@ func (server *Server) LoadConfig(ctx context.Context, config *pb.ResourceReposit
 	// known: for this purpose we close isConfigured channel.
 	// Also since we are now a configured server we can
 	// start participating in the election process.
-	if firstTime {
+	if firstTime { // zx ? when will this be called second time?
 		close(server.isConfigured)
-		return server.triggerElection(ctx)
+		return server.triggerElection(ctx) // zx elect
 	}
 
 	// Goes through the server's map of resources, loads a new
 	// configuration and updates expiration time for each of them.
-	for id, resource := range server.resources {
+	for id, resource := range server.resources { // zx resource id when it's inited?
 		resource.LoadConfig(server.findConfigForResource(id), expiryTimes[id])
 	}
 
@@ -603,18 +603,19 @@ func (server *Server) run() {
 	interval := defaultInterval
 	retryNumber := 0
 
-	for {
+	for { // zx
 		var wakeUp <-chan time.Time
-		if server.updater != nil {
+		if server.updater != nil { // zx the updater set at where?
 			wakeUp = time.After(interval)
 		}
 
 		select {
-		case <-server.quit:
+		case <-server.quit: // zx wait to check if closed, quit gracefully
 			// The server is closed, nothing to do here.
 			return
 		case <-wakeUp:
-			// Time to update the resources configuration.
+			// Time to update the resources configuration. // zx call the updater,
+			// zx but why there is updater input into?
 			interval, retryNumber = server.updater(server, retryNumber)
 		}
 	}
@@ -671,13 +672,14 @@ func (server *Server) getOrCreateResource(id string) *Resource {
 	return resource
 }
 
+// zx the core
 // ReleaseCapacity releases capacity owned by a client.
 func (server *Server) ReleaseCapacity(ctx context.Context, in *pb.ReleaseCapacityRequest) (out *pb.ReleaseCapacityResponse, err error) {
 	out = new(pb.ReleaseCapacityResponse)
 
 	log.V(2).Infof("ReleaseCapacity req: %v", in)
 	start := time.Now()
-	requests.WithLabelValues("ReleaseCapacity").Inc()
+	requests.WithLabelValues("ReleaseCapacity").Inc() // zx NewCounterVec ,
 	defer func() {
 		log.V(2).Infof("ReleaseCapacity res: %v", out)
 		requestDurations.WithLabelValues("ReleaseCapacity").Observe(time.Since(start).Seconds())
@@ -712,7 +714,7 @@ func (server *Server) ReleaseCapacity(ctx context.Context, in *pb.ReleaseCapacit
 		// If the server does not know about the resource we don't have to do
 		// anything.
 		if res, ok := server.resources[resourceID]; ok {
-			res.store.Release(client)
+			res.store.Release(client) // zx the under principle is to use store to Release it.
 		}
 	}
 
@@ -735,6 +737,7 @@ type clientRequest struct {
 
 // GetCapacity assigns capacity leases to clients. It is part of the
 // doorman.CapacityServer implementation.
+// zx the core
 func (server *Server) GetCapacity(ctx context.Context, in *pb.GetCapacityRequest) (out *pb.GetCapacityResponse, err error) {
 	out = new(pb.GetCapacityResponse)
 

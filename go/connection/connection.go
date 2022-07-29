@@ -15,6 +15,7 @@
 // Package connection provides functionality to establish
 // the connection between the client and the server. It is
 // an internal package to be used only by the Doorman system.
+// zx remember , connection is always hold by the client.
 package connection
 
 import (
@@ -28,22 +29,23 @@ import (
 )
 
 const (
-	maxRetries = 5
+	maxRetries = 5 // zx what's this for?
 
 	// minBackoff is the minimum for the exponential backoff.
-	minBackoff = 1 * time.Second
+	minBackoff = 1 * time.Second // zx  why it's a time range?
 
 	// maxBackoff is the maximum for the exponential backoff.
 	maxBackoff = 1 * time.Minute
 )
 
 // Connection contains information about connection between the server and the client.
+// zx why it's a connection?
 type Connection struct {
 	addr          string
 	currentMaster string
-	Stub          pb.CapacityClient
-	conn          *rpc.ClientConn
-	Opts          *Options
+	Stub          pb.CapacityClient // zx the service is capacity, so the name is capacity
+	conn          *rpc.ClientConn   // zx the tcp client type is ?
+	Opts          *Options          // zx what's the definition?
 }
 
 func (connection *Connection) String() string {
@@ -51,10 +53,10 @@ func (connection *Connection) String() string {
 }
 
 // New creates a new Connection with the given server address.
-func New(addr string, options ...Option) (*Connection, error) {
+func New(addr string, options ...Option) (*Connection, error) { // zx the param @hard
 	connection := &Connection{
 		addr: addr,
-		Opts: getOptions(options),
+		Opts: getOptions(options), // zx this is a slice-like thing
 	}
 
 	if err := connection.connect(addr); err != nil {
@@ -65,20 +67,20 @@ func New(addr string, options ...Option) (*Connection, error) {
 }
 
 // Options keeps information about connection configuration.
-type Options struct {
-	DialOpts               []rpc.DialOption
+type Options struct { // zx what's this for?
+	DialOpts               []rpc.DialOption // zx there is a problem DialOption
 	MinimumRefreshInterval time.Duration
 }
 
 // Option configures the connection parameters.
-type Option func(*Options)
+type Option func(*Options) // zx an function type, fuck!
 
 func getOptions(options []Option) *Options {
-	opts := &Options{
+	opts := &Options{ // zx this is a struct， set the basic attributes
 		MinimumRefreshInterval: 5 * time.Second,
 	}
 
-	for _, opt := range options {
+	for _, opt := range options { // zx this is the input param, a function slice
 		opt(opts)
 	}
 
@@ -87,16 +89,16 @@ func getOptions(options []Option) *Options {
 
 // MinimumRefreshInterval sets the minimum refresh interval for
 // the connection's establishing.
-func MinimumRefreshInterval(t time.Duration) Option {
+func MinimumRefreshInterval(t time.Duration) Option { // zx this is really strange, this makes a option type function
 	return func(opts *Options) {
 		opts.MinimumRefreshInterval = t
 	}
 }
 
 // DialOpts sets dial options for the connection.
-func DialOpts(dialOpts ...rpc.DialOption) Option {
+func DialOpts(dialOpts ...rpc.DialOption) Option { // zx make an function to set dialOpts
 	return func(opts *Options) {
-		opts.DialOpts = dialOpts
+		opts.DialOpts = dialOpts // zx make ...as parameter, and the name itself can be a slice
 	}
 }
 
@@ -105,12 +107,12 @@ func (connection *Connection) connect(addr string) error {
 	connection.Close()
 	log.Infof("connecting to %v", addr)
 
-	conn, err := rpc.Dial(addr, connection.Opts.DialOpts...)
+	conn, err := rpc.Dial(addr, connection.Opts.DialOpts...) // zx this is a very interesting grammar
 	if err != nil {
 		log.Errorf("connection failed: %v", err)
 		return err
 	}
-
+	// zx 这个就很棒
 	connection.conn, connection.Stub = conn, pb.NewCapacityClient(conn)
 	connection.currentMaster = addr
 
@@ -118,6 +120,7 @@ func (connection *Connection) connect(addr string) error {
 }
 
 // ExecuteRPC executes an RPC against the current master.
+// zx callback func() (HasMastership, error) is an func but no param
 func (connection *Connection) ExecuteRPC(callback func() (HasMastership, error)) (interface{}, error) {
 	// Runs the actual RPC (through the callback function passed in here)
 	// through the runMasterAware shell.
@@ -132,6 +135,7 @@ type HasMastership interface {
 
 // runMasterAware is a wrapper for RPCs that may receive a response informing
 // of a changed mastership, in which case it will reconnect and retry.
+// zx this method should be the master getter.
 func (connection *Connection) runMasterAware(callback func() (HasMastership, error)) (interface{}, error) {
 	var (
 		err     error
@@ -142,7 +146,7 @@ func (connection *Connection) runMasterAware(callback func() (HasMastership, err
 	for {
 		// Does the exponential backoff sleep.
 		if retries > 0 {
-			t := timeutil.Backoff(minBackoff, maxBackoff, retries)
+			t := timeutil.Backoff(minBackoff, maxBackoff, retries) // zx this is an time range
 			log.Infof("retry sleep number %d: %v", retries, t)
 			time.Sleep(t)
 		}
@@ -157,12 +161,12 @@ func (connection *Connection) runMasterAware(callback func() (HasMastership, err
 		if connection.conn == nil {
 			if err := connection.connect(connection.addr); err != nil {
 				// The connection failed. Retry.
-				continue
+				continue //zx connection failed and retry, but the retry times is not recorded.
 			}
 		}
 
 		// Calls the callback function that performs an RPC on the master.
-		out, err = callback()
+		out, err = callback() // zx what if the callback has some params?
 
 		// If an error happened we are going to close the connection to the
 		// server. The next iteration will open it again.
@@ -215,6 +219,7 @@ func (connection *Connection) runMasterAware(callback func() (HasMastership, err
 }
 
 // Close closes the connection of the client to the server.
+// zx this proves the connection is used by client
 func (connection *Connection) Close() {
 	// Closes the current connection if there is one.
 	if connection.conn != nil {

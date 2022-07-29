@@ -19,25 +19,27 @@ import (
 // prepended with prefix and an underscore. So, if prefix is
 // "DOORMAN", and the flag's name "foo-bar", the environment variable
 // DOORMAN_FOO_BAR will be used.
+// zx this function will populate the？
 func Populate(set *flag.FlagSet, prefix string) error {
 	var (
-		setThroughFlags = make(map[string]bool)
-		knownEnv        = make(map[string]bool)
+		setThroughFlags = make(map[string]bool) // zx what's this?
+		knownEnv        = make(map[string]bool) // zx record the value
 		err             error
 	)
-	set.Visit(func(f *flag.Flag) {
+	// zx this apply a function to every element , only those that have been set.
+	set.Visit(func(f *flag.Flag) { // zx set is not a common Set
 		setThroughFlags[f.Name] = true
 	})
 
-	set.VisitAll(func(f *flag.Flag) {
-		key := flagToEnv(prefix, f.Name)
+	set.VisitAll(func(f *flag.Flag) { // zx visit all flags
+		key := flagToEnv(prefix, f.Name) // zx update the f.name
 		knownEnv[key] = true
-		val := os.Getenv(key)
+		val := os.Getenv(key) // zx get the updated value from operating system
 		if val == "" {
 			return
 		}
 
-		if setThroughFlags[f.Name] {
+		if setThroughFlags[f.Name] { // zx this parts is read from  command line
 			log.Warningf("Recognized environment variable %v, but shadowed by flag %v: won't be used.", key, f.Name)
 			return
 		}
@@ -60,8 +62,9 @@ func Populate(set *flag.FlagSet, prefix string) error {
 	return err
 }
 
+// zx update the name
 func flagToEnv(prefix, name string) string {
-	rest := strings.ToUpper(strings.Replace(name, "-", "_", -1))
+	rest := strings.ToUpper(strings.Replace(name, "-", "_", -1)) // zx replace all the - with _
 	if prefix != "" {
 		return prefix + "_" + rest
 	}

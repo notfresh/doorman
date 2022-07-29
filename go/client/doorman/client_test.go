@@ -26,9 +26,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	rpc "google.golang.org/grpc"
 
-	server "github.com/youtube/doorman/go/server/doorman"
+	server "github.com/notfresh/doorman/go/server/doorman"
 
-	pb "github.com/youtube/doorman/proto/doorman"
+	pb "github.com/notfresh/doorman/proto/doorman"
 )
 
 var (

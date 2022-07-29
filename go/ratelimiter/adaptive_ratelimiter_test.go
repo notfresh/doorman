@@ -33,16 +33,20 @@ func TestAdaptiveWait(t *testing.T) {
 	defer arl.Close()
 
 	// Unblock the rate limiter.
-	res.capacity <- 10
+	res.capacity <- 2
 
 	// Create context with timeout so that we do not have to wait
 	// if the test is broken.
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	// zx 200 millisecond timout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := arl.Wait(ctx); err != nil {
-		t.Fatal(err)
+	for i := 0; i < 6; i++ {
+		if err := arl.Wait(ctx); err != nil {
+			t.Fatal(err)
+		}
 	}
+
 }
 
 func TestClearOldEvents(t *testing.T) {
@@ -66,7 +70,7 @@ func TestClearOldEvents(t *testing.T) {
 	// after calling Clear.
 	e.Record(time.Now())
 
-	e.Clear(window)
+	e.Clear(window) // zx this clear the old time in entries
 	if got, want := len(e.times), 1; got != want {
 		t.Errorf("entries length got %v, want %v", got, want)
 	}

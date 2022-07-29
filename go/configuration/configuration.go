@@ -19,7 +19,7 @@ import (
 // Source is a source for configuration. Calling it will block until a
 // new version of the config is available.
 // zx: 这是一个要返回的函数，所以定义为一个对象
-type Source func(context.Context) (data []byte, err error)
+type Source func(context.Context) (data []byte, err error) // zx ?
 
 type pair struct {
 	data []byte
@@ -29,24 +29,24 @@ type pair struct {
 // LocalFiles is a configuration stored in a file in the local
 // filesystem. The file will be reloaded if the process receives a
 // SIGHUP.
-func LocalFile(path string) Source {
+func LocalFile(path string) Source { // zx a function that return []byte
 	updates := make(chan pair, 1)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP)
-	c <- syscall.SIGHUP
+	c := make(chan os.Signal, 1)     // zx how to create a channel @hard
+	signal.Notify(c, syscall.SIGHUP) // zx c will only accept sigup
+	c <- syscall.SIGHUP              // zx what is sigup?
 	go func() {
-		for range c {
+		for range c { // zx what's this for?
 			log.Infof("config: loading configuration from %v.", path)
 			data, err := ioutil.ReadFile(path)
-			updates <- pair{data: data, err: err}
+			updates <- pair{data: data, err: err} // zx put a pair
 		}
 	}()
 	return func(ctx context.Context) (data []byte, err error) {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case p := <-updates:
+		case p := <-updates: // zx this is wired, because updates is out of the func
 			return p.data, p.err
 		}
 	}

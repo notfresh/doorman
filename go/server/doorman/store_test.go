@@ -20,7 +20,7 @@ import (
 )
 
 func TestMapStore(t *testing.T) {
-	store := NewLeaseStore("test")
+	store := NewLeaseStore("test") // zx 一个空的存储
 
 	store.Assign("a", 10*time.Second, 1*time.Second, 10.0, 12.0, 1)
 	store.Assign("b", 10*time.Second, 1*time.Second, 10.0, 12.0, 1)
@@ -45,6 +45,7 @@ func TestMapStore(t *testing.T) {
 	time.Sleep(10 * time.Second)
 	store.Clean()
 
+	// want 想要的， got 实际得到的
 	if want, got := 15.0, store.SumHas(); want != got {
 		t.Errorf("store.SumHas() = %v, got %v", want, got)
 	}
