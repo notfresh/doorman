@@ -45,12 +45,12 @@ import (
 )
 
 var (
-	port = flag.Int("port", 0, "port to bind to")
+	port = flag.Int("port", 6000, "port to bind to")
 	// FIXME(ryszard): As of Jan 21, 2016 it's impossible to serve
 	// both RPC and HTTP traffic on the same port. This should be
 	// fixed by grpc/grpc-go#75. When that happens, remove
 	// debugPort.
-	debugPort  = flag.Int("debug_port", 8081, "port to bind for HTTP debug info")
+	debugPort  = flag.Int("debug_port", 6050, "port to bind for HTTP debug info")
 	serverRole = flag.String("server_role", "root", "Role of this server in the server tree")
 	parent     = flag.String("parent", "", "Address of the parent server which this server connects to")
 	hostname   = flag.String("hostname", "", "Use this as the hostname (if empty, use whatever the kernel reports")
